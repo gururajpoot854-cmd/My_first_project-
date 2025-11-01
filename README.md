@@ -10,7 +10,8 @@ A modern, fully-functional e-commerce website inspired by Amazon, built with Nex
 - **Product Details**: View detailed product information, images, ratings, and reviews
 - **Shopping Cart**: Add/remove items, update quantities, and view cart totals
 - **Checkout**: Complete checkout process with shipping and payment information
-- **User Account**: Manage account settings, orders, and preferences
+- **User Authentication**: Secure email/password authentication with NextAuth
+- **User Account**: Manage account settings, orders, and preferences (protected route)
 
 ### 🎨 Design Features
 - **Responsive Design**: Fully responsive layout that works on mobile, tablet, and desktop
@@ -23,7 +24,11 @@ A modern, fully-functional e-commerce website inspired by Amazon, built with Nex
 ### 🛠️ Technical Features
 - **Next.js 14**: Latest version with App Router for optimal performance
 - **TypeScript**: Full type safety throughout the application
-- **Client-Side State Management**: React Context API for shopping cart
+- **NextAuth v5**: Secure authentication with Credentials provider
+- **Password Hashing**: bcrypt for secure password storage
+- **Form Validation**: Zod for client and server-side validation
+- **Protected Routes**: Middleware-based route protection
+- **Client-Side State Management**: React Context API for shopping cart and sessions
 - **Local Storage**: Cart persistence across sessions
 - **Image Optimization**: Next.js Image component for optimized loading
 - **Static Generation**: Pre-rendered pages for fast loading times
@@ -71,12 +76,27 @@ A modern, fully-functional e-commerce website inspired by Amazon, built with Nex
 npm install
 ```
 
-2. Run the development server:
+2. Set up environment variables:
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```env
+# NextAuth Configuration
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=http://localhost:3000
+```
+
+**Important**: Generate a secure secret for production:
+```bash
+openssl rand -base64 32
+```
+
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ### Build for Production
 
@@ -100,6 +120,22 @@ npm start
 - Today's deals section
 - Featured products
 - Prime membership promotion
+
+### Authentication Pages
+
+#### Login Page (`/login`)
+- Email/password login form
+- Form validation with error messages
+- Redirect to account page on success
+- Link to registration page
+- Secure credential handling
+
+#### Register Page (`/register`)
+- User registration form (name, email, password)
+- Password confirmation validation
+- Automatic login after registration
+- Duplicate email detection
+- Password hashing with bcrypt
 
 ### Products Page (`/products`)
 - Product grid with filtering and sorting
@@ -132,8 +168,11 @@ npm start
 - Order summary sidebar
 - Place order functionality
 
-### Account Page (`/account`)
-- Account overview dashboard
+### Account Page (`/account`) - Protected Route
+- **Authentication Required**: Redirects to login if not authenticated
+- Account overview dashboard with user information
+- Display logged-in user's name and email
+- Sign out functionality
 - Quick access to orders, settings, addresses
 - Payment options management
 - Prime membership status
@@ -143,6 +182,9 @@ npm start
 
 - **Framework**: Next.js 14.2.5
 - **Language**: TypeScript 5.5.3
+- **Authentication**: NextAuth.js v5 (beta)
+- **Password Hashing**: bcryptjs
+- **Validation**: Zod
 - **Styling**: Tailwind CSS 3.4.4
 - **UI Library**: React 18.3.1
 - **Image Optimization**: Next.js Image component
@@ -151,6 +193,16 @@ npm start
 - **Build Tool**: Next.js built-in bundler
 
 ## Features in Detail
+
+### Authentication System
+- **NextAuth v5**: Modern authentication for Next.js App Router
+- **Credentials Provider**: Email/password authentication
+- **Secure Password Storage**: Passwords hashed with bcrypt (10 salt rounds)
+- **Session Management**: JWT-based sessions
+- **Protected Routes**: Middleware-based route protection
+- **User Store**: JSON file-based user storage (`lib/users.json`)
+- **Form Validation**: Client and server-side validation with Zod
+- **Auto-login**: Automatic login after successful registration
 
 ### Shopping Cart
 - Persistent cart using localStorage
@@ -173,10 +225,59 @@ npm start
 - Flexible grid layouts
 - Touch-friendly interface
 
+## Authentication Setup
+
+### Environment Variables
+
+The application requires the following environment variables in `.env.local`:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `NEXTAUTH_SECRET` | Secret key for encrypting tokens | Generate with `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | Base URL of your application | `http://localhost:3000` |
+
+### User Storage
+
+Users are stored in `lib/users.json` with the following structure:
+
+```json
+[
+  {
+    "id": "1234567890",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "hashedPassword": "$2a$10$...",
+    "createdAt": "2025-11-01T00:00:00.000Z"
+  }
+]
+```
+
+**Security Notes**:
+- Passwords are never stored in plain text
+- All passwords are hashed using bcrypt with 10 salt rounds
+- The JSON file is for demonstration purposes only
+- For production, use a proper database (PostgreSQL, MongoDB, etc.)
+
+### API Endpoints
+
+- `POST /api/auth/signin` - Sign in with credentials (handled by NextAuth)
+- `POST /api/auth/signout` - Sign out (handled by NextAuth)
+- `GET /api/auth/session` - Get current session (handled by NextAuth)
+- `POST /api/register` - Register new user
+
+### Protected Routes
+
+The following routes require authentication:
+- `/account` - User account dashboard
+
+Unauthenticated users are automatically redirected to `/login`.
+
 ## Future Enhancements
 
 Potential features to add:
-- User authentication and login
+- OAuth providers (Google, GitHub, etc.)
+- Email verification
+- Password reset functionality
 - Real backend API integration
 - Product reviews and ratings system
 - Wishlist functionality

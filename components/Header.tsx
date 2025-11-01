@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export default function Header() {
   const { getCartCount } = useCart();
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
@@ -45,8 +47,10 @@ export default function Header() {
           </form>
 
           <nav className="flex items-center gap-6">
-            <Link href="/account" className="hover:opacity-80 transition">
-              <div className="text-xs">Hello, Sign in</div>
+            <Link href={session ? "/account" : "/login"} className="hover:opacity-80 transition">
+              <div className="text-xs">
+                {session ? `Hello, ${session.user?.name?.split(' ')[0]}` : 'Hello, Sign in'}
+              </div>
               <div className="font-bold">Account</div>
             </Link>
 
